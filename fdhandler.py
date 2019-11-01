@@ -40,7 +40,6 @@ class reader(threading.Thread):
         string = ""
         while not self._queue.empty():
             string += self._queue.get().decode()
-        print(string)
         return string
 
 class writer():
