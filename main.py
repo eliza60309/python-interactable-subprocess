@@ -1,37 +1,32 @@
-import os
-from http.server import BaseHTTPRequestHandler as session
 import subprocesswithfd
-import time
+import asyncio
+import websockets
+import threading
 
-class GetHandler(session):
-    def do_HEAD(self):
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
-        response = """
-        <html>
-            <head>
-                <title>Title goes here!</title>
-            </head>
-            <body>
-                <p>This is a test.</p>
-            </body>
-        </html>
-        """
-        self.wfile.write(response.encode())
-        
-if __name__ == '__main__':
-    '''from http.server import HTTPServer
-    server = HTTPServer(('localhost', 8888), GetHandler)
-    print('Port is 8888')
-    server.serve_forever()'''
-    process = subprocesswithfd.subprocesswithfd(['a.exe'], stdin=True, stdout=True)
+async def wshandler(websocket, path):
+    process = subprocesswithfd.subprocesswithfd(["a.exe"], stdin = True, stdout = True)
+    asyncio.ensure_future(reader(process.stdout, websocket))
+    async for message in websocket:
+        process.stdin.write(message + "\n")
+    process.end()
+    print("main done")
+
+
+async def reader(readfd, sendfd):
+    assert callable(readfd.read)
+    assert callable(readfd.is_alive)
+    assert callable(sendfd.send)
     while True:
-        time.sleep(0.1)
-        print(process.stdout.read()[:-1])
-        string = input()
-        process.stdin.write(string + "\n")
+        try: 
+            await asyncio.sleep(0.1)
+            string = readfd.read()
+            if string != None and string != "":
+                await sendfd.send(string)
+        except:
+            return
+
+
+
+start_server = websockets.serve(wshandler, "localhost", 5566)
+asyncio.get_event_loop().run_until_complete(start_server)
+asyncio.get_event_loop().run_forever()

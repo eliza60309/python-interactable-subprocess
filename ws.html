@@ -1,0 +1,21 @@
+<html>
+    <body>
+        <div align="center">
+            <input type="text" id="input"/><button onclick="send()">submit</button><br>
+            Program returns:<br>
+            <p id="console"></p>
+        </div>
+    </body>
+    <script>
+        ws = new WebSocket("ws://localhost:5566")
+        function send()
+        {
+            ws.send(document.getElementById("input").value)
+        }
+        ws.onmessage = event =>
+        {
+            document.getElementById("console").innerHTML += event.data + "<br>"
+            console.log(event.data)
+        }
+    </script>
+</html>

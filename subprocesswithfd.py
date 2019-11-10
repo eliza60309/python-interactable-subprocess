@@ -22,7 +22,11 @@ class subprocesswithfd():
         if stderr:
             self.stderr = fdhandler.reader(process.stderr)
             self.stderr.start()
-
+        
+    def end(self):
+        self.stdin.close() if hasattr(self, "stdin") else None
+        self.stdout.close() if hasattr(self, "stdout") else None
+        self.stderr.close() if hasattr(self, "stderr") else None
         
 if __name__ == "__main__":
     pass

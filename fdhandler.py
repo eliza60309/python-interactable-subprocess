@@ -24,6 +24,8 @@ class reader(threading.Thread):
         '''the body of the thread: read lines and put them on the queue.'''
         while True:
             char = self._fd.read(1)
+            if char == None:
+                break
             self._queue.put(char)
 
 
@@ -41,6 +43,9 @@ class reader(threading.Thread):
         while not self._queue.empty():
             string += self._queue.get().decode()
         return string
+    
+    def close(self):
+        self._fd.close()
 
 class writer():
     '''
@@ -58,6 +63,9 @@ class writer():
         '''writes to the file descriptor'''
         self._fd.write(string.encode())
         self._fd.flush()
+    
+    def close(self):
+        self._fd.close()
 
 class fdhandler():
     '''
@@ -77,8 +85,9 @@ class fdhandler():
     def eof(self):
         return self._read_fd.eof()
     
-    def join(self):
+    def end(self):
         self._read_fd.join()
+        self._read_fd.close()
     
     def read(self):
         return self._read_fd.read()
